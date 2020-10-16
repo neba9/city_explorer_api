@@ -30,10 +30,32 @@ function aboutUsHandler(request, response) {
 // API Routes
 app.get('/location', handleLocation);
 app.get('/restaurants', handleRestaurants);
+app.get('/weather', handleWeather);
 
 app.use('*', notFoundHandler);
 
 // HELPER FUNCTIONS
+
+function handleWeather (request, response){
+  console.log('handleWeather');
+  try {
+    const data = require('./data/weather.json');
+    const weatherdata = [];
+    data.data.forEach(entry => {
+      weatherdata.push(new Weather(entry));
+      console.log('weatherdata',weatherdata);
+    });
+    response.send(weatherdata);
+  }
+  catch (error) {
+    console.log('ERROR', error);
+    response.status(500).send('So sorry, something went wrong.');
+  }
+}
+
+function Weather(weather){
+   this.time = weather.datetime;
+}
 
 function handleLocation(request, response) {
   try {
