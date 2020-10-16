@@ -48,8 +48,9 @@ function handleWeather (request, response){
     response.send(weatherdata);
   }
   catch (error) {
-    console.log('ERROR', error);
-    response.status(500).send('So sorry, something went wrong.');
+    // console.log('ERROR', error);
+    handleError(error);
+    // response.status(500).send('So sorry, something went wrong.');
   }
 }
 
@@ -65,8 +66,9 @@ function handleLocation(request, response) {
     response.send(locationData);
   }
   catch (error) {
-    console.log('ERROR', error);
-    response.status(500).send('So sorry, something went wrong.');
+    // console.log('ERROR', error);
+    handleError(error);
+    // response.status(500).send('So sorry, something went wrong.');
   }
 }
 
@@ -87,8 +89,9 @@ function handleRestaurants(request, response) {
     response.send(restaurantData);
   }
   catch (error) {
-    console.log('ERROR', error);
-    response.status(500).send('So sorry, something went wrong.');
+    // console.log('ERROR', error);
+    handleError(error);
+    // response.status(500).send('So sorry, something went wrong.');
   }
 }
 
@@ -100,6 +103,10 @@ function Restaurant(entry) {
 
 function notFoundHandler(request, response) {
   response.status(404).send('huh?');
+}
+
+function handleError(error){
+  response.status(500).send(error);
 }
 
 
