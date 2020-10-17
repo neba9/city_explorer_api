@@ -41,8 +41,10 @@ function handleWeather (request, response){
   try {
     const data = require('./data/weather.json');
     const weatherdata = [];
-    data.data.forEach(entry => {
-      weatherdata.push(new Weather(entry));
+    data.data.map(entry => {
+      const weather = new Weather(entry);
+      weatherdata.push(weather);
+      // weatherdata.push(new Weather(entry));
       console.log('weatherdata',weatherdata);
     });
     response.send(weatherdata);
@@ -56,6 +58,7 @@ function handleWeather (request, response){
 
 function Weather(weather){
    this.time = weather.datetime;
+   this.forecast = weather.weather.description;
 }
 
 function handleLocation(request, response) {
