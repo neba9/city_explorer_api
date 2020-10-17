@@ -6,6 +6,7 @@ require('dotenv').config();
 // Application Dependencies
 const express = require('express');
 const cors = require('cors');
+const superagent = require('superagent');
 
 // Application Setup
 const PORT = process.env.PORT;
@@ -61,26 +62,60 @@ function Weather(weather){
    this.forecast = weather.weather.description;
 }
 
-function handleLocation(request, response) {
-  try {
-    const geoData = require('./data/location.json');
-    const city = request.query.city;
-    const locationData = new Location(city, geoData);
-    response.send(locationData);
-  }
-  catch (error) {
-    // console.log('ERROR', error);
-    handleError(error);
-    // response.status(500).send('So sorry, something went wrong.');
-  }
+//route handler for location 
+
+function handleLocation(req, res){
+  let city = req.query.city;
+  let key = process.env.GEOCODDE_API_KEY;
+
+  const URL = `https://us1.locationiq.com/v1/reverse.php?key=${key}=${city}=json`;
+
+  superagent.get(URL)
+      .then(data =>{
+        console.log(dat.body[0]);
+        let location = new Location(city, data.body[0]);
+        res.status(200).json(location);
+      })
+      .catch((error)=>{
+        console.log('error', error);
+        res.status(500).send('something went wrong');
+      })
+}
+// constarctor function for location 
+
+function Location(city, locationData){
+    this.search_query = city;
+    this.latitude = locationData.lat;
+    this.longitude = locationData.lon;
+    this.formatted_query = locationData.display_name;
 }
 
-function Location(city, geoData) {
-  this.search_query = city;
-  this.formatted_query = geoData[0].display_name;
-  this.latitude = geoData[0].lat;
-  this.longitude = geoData[0].lon;
-}
+
+
+
+
+
+
+// function handleLocation(request, response) {
+//   try {
+//     const geoData = require('./data/location.json');
+//     const city = request.query.city;
+//     const locationData = new Location(city, geoData);
+//     response.send(locationData);
+//   }
+//   catch (error) {
+//     // console.log('ERROR', error);
+//     handleError(error);
+//     // response.status(500).send('So sorry, something went wrong.');
+//   }
+// }
+
+// function Location(city, geoData) {
+//   this.search_query = city;
+//   this.formatted_query = geoData[0].display_name;
+//   this.latitude = geoData[0].lat;
+//   this.longitude = geoData[0].lon;
+// }
 
 function handleRestaurants(request, response) {
   try {
