@@ -30,10 +30,10 @@ function aboutUsHandler(request, response) {
 
 // API Routes
 app.get('/location', handleLocation);
-app.get('/restaurants', handleRestaurants);
+// app.get('/restaurants', handleRestaurants);
 app.get('/weather', handleWeather);
 
-app.use('*', notFoundHandler);
+// app.use('*', notFoundHandler);
 
 // HELPER FUNCTIONS
 
@@ -68,11 +68,12 @@ function handleLocation(req, res){
   let city = req.query.city;
   let key = process.env.GEOCODDE_API_KEY;
 
-  const URL = `https://us1.locationiq.com/v1/reverse.php?key=${key}=${city}=json`;
+
+  const URL = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
 
   superagent.get(URL)
       .then(data =>{
-        console.log(dat.body[0]);
+        console.log(data.body[0]);
         let location = new Location(city, data.body[0]);
         res.status(200).json(location);
       })
@@ -117,35 +118,35 @@ function Location(city, locationData){
 //   this.longitude = geoData[0].lon;
 // }
 
-function handleRestaurants(request, response) {
-  try {
-    const data = require('./data/restaurants.json');
-    const restaurantData = [];
-    data.nearby_restaurants.forEach(entry => {
-      restaurantData.push(new Restaurant(entry));
-    });
-    response.send(restaurantData);
-  }
-  catch (error) {
-    // console.log('ERROR', error);
-    handleError(error);
-    // response.status(500).send('So sorry, something went wrong.');
-  }
-}
+// function handleRestaurants(request, response) {
+//   try {
+//     const data = require('./data/restaurants.json');
+//     const restaurantData = [];
+//     data.nearby_restaurants.forEach(entry => {
+//       restaurantData.push(new Restaurant(entry));
+//     });
+//     response.send(restaurantData);
+//   }
+//   catch (error) {
+//     // console.log('ERROR', error);
+//     handleError(error);
+//     // response.status(500).send('So sorry, something went wrong.');
+//   }
+// }
 
-function Restaurant(entry) {
-  this.restaurant = entry.restaurant.name;
-  this.cuisines = entry.restaurant.cuisines;
-  this.locality = entry.restaurant.location.locality;
-}
+// function Restaurant(entry) {
+//   this.restaurant = entry.restaurant.name;
+//   this.cuisines = entry.restaurant.cuisines;
+//   this.locality = entry.restaurant.location.locality;
+// }
 
-function notFoundHandler(request, response) {
-  response.status(404).send('huh?');
-}
+// function notFoundHandler(request, response) {
+//   response.status(404).send('huh?');
+// }
 
-function handleError(error){
-  response.status(500).send(error);
-}
+// function handleError(error){
+//   response.status(500).send(error);
+// }
 
 
 
