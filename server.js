@@ -44,31 +44,36 @@ app.get (`/trails`, handleTrailes);
 function handleWeather(req, res){
   let city = req.query.search_query;
   let key = process.env.WEATHER_API_KEY;
-  console.log('ciyt', city);
+  console.log('city', city);
 
-  const URL = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}`;
+  const URL = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}&days=7`;
 
   
   superagent.get(URL)
     // let weatherArr = [];
       .then(data =>{
-        console.log('data.body.data', data.body.data[0]);
         
-        let weather = new Weather(city, data.body.data[0]);
-        res.status(200).json(weather);
+        console.log('Object.keys(data.body.data)', Object.keys(data.body.data));
+        const  weatherArr = data.body.data.map((value, i)=>{
+          console.log('.map value loop', value);
+          return new Weather(value,i)
+        });
+
+        console.log(weatherArr);
+        res.status(200).json(weatherArr);
       })
     
       .catch((error)=>{
         console.log('error', error);
         res.status(500).send('something went wrong');
-      })
+      });
  }
 
 // constarctor function for weather
 
-function Weather(weather){
-     this.time = weather.datetime;
-     this.forecast = weather.description;
+function Weather(obj){
+     this.time = obj.valid_date;
+     this.forecast = obj.weather.description;
 
 }
 //weathr end
