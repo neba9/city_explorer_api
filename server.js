@@ -32,37 +32,54 @@ function aboutUsHandler(request, response) {
 app.get('/location', handleLocation);
 // app.get('/restaurants', handleRestaurants);
 app.get('/weather', handleWeather);
+app.get (`/trails`, handleTrailes);
 
 // app.use('*', notFoundHandler);
 
 // HELPER FUNCTIONS
 
-function handleWeather (request, response){
-  console.log('handleWeather');
-  try {
-    const data = require('./data/weather.json');
-    const weatherdata = [];
-    data.data.map(entry => {
-      const weather = new Weather(entry);
-      weatherdata.push(weather);
-      // weatherdata.push(new Weather(entry));
-      console.log('weatherdata',weatherdata);
-    });
-    response.send(weatherdata);
-  }
-  catch (error) {
-    // console.log('ERROR', error);
-    handleError(error);
-    // response.status(500).send('So sorry, something went wrong.');
-  }
-}
 
-function Weather(weather){
-   this.time = weather.datetime;
-   this.forecast = weather.weather.description;
-}
+//(1 start )route handler for weather
 
-//route handler for location 
+function handleWeather(req, res){
+  let city = req.query.search_query;
+  let key = process.env.WEATHER_API_KEY;
+  console.log('city', city);
+
+  const URL = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}&days=7`;
+
+  
+  superagent.get(URL)
+    // let weatherArr = [];
+      .then(data =>{
+        
+        //console.log('Object.keys(data.body.data)', Object.keys(data.body.data));
+        const  weatherArr = data.body.data.map((value, i)=>{
+          //console.log('.map value loop', value);
+          return new Weather(value,i)
+        });
+
+        //console.log(weatherArr);
+        res.status(200).json(weatherArr);
+      })
+    
+      .catch((error)=>{
+        console.log('error', error);
+        res.status(500).send('something went wrong');
+      });
+ }
+
+// constarctor function for weather
+
+function Weather(obj){
+     this.time = obj.valid_date;
+     this.forecast = obj.weather.description;
+
+}
+//weathr end
+
+
+//(2 start)route handler for location 
 
 function handleLocation(req, res){
   let city = req.query.city;
@@ -73,8 +90,10 @@ function handleLocation(req, res){
 
   superagent.get(URL)
       .then(data =>{
-        console.log(data.body[0]);
+        //console.log(data.body[0]);
+
         let location = new Location(city, data.body[0]);
+        console.log('location', location);
         res.status(200).json(location);
       })
       .catch((error)=>{
@@ -91,64 +110,50 @@ function Location(city, locationData){
     this.formatted_query = locationData.display_name;
 }
 
+//(2 end 3 start)route handler for trailes 
+
+function handleTrailes(req, res){
+  let lat = req.query.latitude;
+  let lon =req.query.longitude;
+  let key = process.env.TRAIL_API_KEY;
 
 
+  const URL = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=10&key=${key}`;
 
+  superagent.get(URL)
+      .then(data =>{
+        console.log('weather object', data.body.trails);
+        const newArr = data.body.trails.map(value => {
+         return new Trails(value); 
+        })
+         
+        // console.log('trails', trails);
+         res.status(200).json(newArr);
+      })
+      .catch((error)=>{
+        console.log('error', error);
+        res.status(500).send('something went wrong');
+      })
+}
+//constarctor function for  
 
+function Trails(trailObj){
+    this.name = trailObj.name;
+    this.location = trailObj.location;
+    this.length = trailObj.length;
+    this.stars = trailObj.stars;
+    this.star_votes = trailObj.starVotes; 
+    this.summary = trailObj.summary;
+    this.trail_url = trailObj.url;
+    this.conditions = trailObj.conditionStatus;
+    this.condition_date = trailObj.conditionDate;
+    this.condition_time = trailObj.conditionDetails;
 
+}
 
-// function handleLocation(request, response) {
-//   try {
-//     const geoData = require('./data/location.json');
-//     const city = request.query.city;
-//     const locationData = new Location(city, geoData);
-//     response.send(locationData);
-//   }
-//   catch (error) {
-//     // console.log('ERROR', error);
-//     handleError(error);
-//     // response.status(500).send('So sorry, something went wrong.');
-//   }
-// }
-
-// function Location(city, geoData) {
-//   this.search_query = city;
-//   this.formatted_query = geoData[0].display_name;
-//   this.latitude = geoData[0].lat;
-//   this.longitude = geoData[0].lon;
-// }
-
-// function handleRestaurants(request, response) {
-//   try {
-//     const data = require('./data/restaurants.json');
-//     const restaurantData = [];
-//     data.nearby_restaurants.forEach(entry => {
-//       restaurantData.push(new Restaurant(entry));
-//     });
-//     response.send(restaurantData);
-//   }
-//   catch (error) {
-//     // console.log('ERROR', error);
-//     handleError(error);
-//     // response.status(500).send('So sorry, something went wrong.');
-//   }
-// }
-
-// function Restaurant(entry) {
-//   this.restaurant = entry.restaurant.name;
-//   this.cuisines = entry.restaurant.cuisines;
-//   this.locality = entry.restaurant.location.locality;
-// }
-
-// function notFoundHandler(request, response) {
-//   response.status(404).send('huh?');
-// }
-
-// function handleError(error){
-//   response.status(500).send(error);
-// }
-
+//(3 end )
 
 
 // Make sure the server is listening for requests
 app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+
