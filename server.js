@@ -53,13 +53,13 @@ function handleWeather(req, res){
     // let weatherArr = [];
       .then(data =>{
         
-        console.log('Object.keys(data.body.data)', Object.keys(data.body.data));
+        //console.log('Object.keys(data.body.data)', Object.keys(data.body.data));
         const  weatherArr = data.body.data.map((value, i)=>{
-          console.log('.map value loop', value);
+          //console.log('.map value loop', value);
           return new Weather(value,i)
         });
 
-        console.log(weatherArr);
+        //console.log(weatherArr);
         res.status(200).json(weatherArr);
       })
     
@@ -90,7 +90,7 @@ function handleLocation(req, res){
 
   superagent.get(URL)
       .then(data =>{
-        console.log(data.body[0]);
+        //console.log(data.body[0]);
 
         let location = new Location(city, data.body[0]);
         console.log('location', location);
@@ -113,39 +113,43 @@ function Location(city, locationData){
 //(2 end 3 start)route handler for trailes 
 
 function handleTrailes(req, res){
-  let city = req.query.city;
+  let lat = req.query.latitude;
+  let lon =req.query.longitude;
   let key = process.env.TRAIL_API_KEY;
 
 
-  const URL = `https://www.hikingproject.com/data/get-trails?city=${city}key=${key}lat=40.0274&lon=-105.2519&maxDistance=`;
+  const URL = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=10&key=${key}`;
 
   superagent.get(URL)
       .then(data =>{
-        console.log(data.body[0]);
-        // let trails = new Trails(city, data.body[0]);
+        console.log('weather object', data.body.trails);
+        const newArr = data.body.trails.map(value => {
+         return new Trails(value); 
+        })
+         
         // console.log('trails', trails);
-        // res.status(200).json(trails);
+         res.status(200).json(newArr);
       })
-      // .catch((error)=>{
-      //   console.log('error', error);
-      //   res.status(500).send('something went wrong');
-      // })
+      .catch((error)=>{
+        console.log('error', error);
+        res.status(500).send('something went wrong');
+      })
 }
-// constarctor function for location 
+//constarctor function for  
 
-// function Trails(city, trailDat){
-//     this.name = city;
-//     this.location = trailData.lat;
-//     this.length = trailData.lon;
-//     this.stars = trailData.display_name;
-//     this.star_votes = trailData; 
-//     this.summary = trailData;
-//     this.trail_url = trailData;
-//     this.conditions = trailData;
-//     this.condition_date = trailData;
-//     this.condition_time = trailData;
+function Trails(trailObj){
+    this.name = trailObj.name;
+    this.location = trailObj.location;
+    this.length = trailObj.length;
+    this.stars = trailObj.stars;
+    this.star_votes = trailObj.starVotes; 
+    this.summary = trailObj.summary;
+    this.trail_url = trailObj.url;
+    this.conditions = trailObj.conditionStatus;
+    this.condition_date = trailObj.conditionDate;
+    this.condition_time = trailObj.conditionDetails;
 
-// }
+}
 
 //(3 end )
 

@@ -25,3 +25,4 @@
 ## credit and collaboratons
 - i was working with Rown(TA)  
 - i sued my class vedio and class demo to work the lab .
+- i work with my partner with Henry Funk. 
