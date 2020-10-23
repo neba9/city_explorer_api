@@ -15,8 +15,8 @@
 ## Architecture
 - to develop theis page i use 
 - languages (html, css, javaScript)  
-- libraries (json, ajax )
-- 
+- libraries (json, ajax, express )
+- sql DataBase
 
 ## Change Long
 
@@ -24,5 +24,15 @@
 
 ## credit and collaboratons
 - i was working with Rown(TA)  
-- i sued my class vedio and class demo to work the lab .
+- i used my class vedio and class demo to work the lab .
 - i work with my partner with Henry Funk. 
+- i used class demo and calss video for cerat DataBase and location functin and some part work with TA.
+
+#### Time Estimate
+
+- Number and name of feature:add the DataBase and creat table stuff and creat function to check the database for the location information
+
+- Estimate of time needed to complete: 3:30 houres
+- Start time:  5:00pm
+- Finish time: 9:47pm
+- Actual time needed to complete: 4:50
