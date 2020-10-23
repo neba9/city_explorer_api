@@ -8,10 +8,20 @@ const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
 
+const pg = require('pg');
+
 // Application Setup
 const PORT = process.env.PORT;
 const app = express();
 app.use(cors());
+
+
+//creat our postgers clint 
+
+const client = new pg.Client(process.env.DATABASE_URL);
+
+client.on('error',err=>console.error(err))
+
 
 app.get('/', (request, response) => {
   response.send('Home Page!');
@@ -86,20 +96,35 @@ function handleLocation(req, res){
   let key = process.env.GEOCODDE_API_KEY;
 
 
-  const URL = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+  const SQL = `SELECT * FROM locations WHERE search_query=$1`;
+  const sqlValue = [city];
 
-  superagent.get(URL)
+  client.query(SQL, sqlValue)
+  .then(result=>{
+    console.log(result);
+    if (result.rows.length) res.status(200).json(result.rows[0]);
+    else{
+    const URL = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+    
+    superagent.get(URL)
       .then(data =>{
         //console.log(data.body[0]);
-
+  
         let location = new Location(city, data.body[0]);
         console.log('location', location);
+        const SQL = `INSERT INTO locations (search_query, latitude, longitude, formatted_query) VALUES ($1,$2,$3,$4)`;
+        const sqlValue = [location.search_query,location.latitude,location.longitude,location.formatted_query];
+        client.query(SQL,sqlValue);
         res.status(200).json(location);
+
       })
       .catch((error)=>{
         console.log('error', error);
         res.status(500).send('something went wrong');
-      })
+      })}
+}) 
+
+
 }
 // constarctor function for location 
 
@@ -122,7 +147,7 @@ function handleTrailes(req, res){
 
   superagent.get(URL)
       .then(data =>{
-        console.log('weather object', data.body.trails);
+        // console.log('weather object', data.body.trails);
         const newArr = data.body.trails.map(value => {
          return new Trails(value); 
         })
@@ -135,7 +160,7 @@ function handleTrailes(req, res){
         res.status(500).send('something went wrong');
       })
 }
-//constarctor function for  
+//constarctor function for Trails
 
 function Trails(trailObj){
     this.name = trailObj.name;
@@ -154,6 +179,11 @@ function Trails(trailObj){
 //(3 end )
 
 
-// Make sure the server is listening for requests
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+// Make sure the server is listening for requests, firs connect with the database and then connect with server.
+client.connect()
+.then(()=>{
+  
+  app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+})
+
 
