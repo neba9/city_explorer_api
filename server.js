@@ -43,11 +43,55 @@ function aboutUsHandler(request, response) {
 app.get('/location', handleLocation);
 app.get('/yelp', handleRestaurants);
 app.get('/weather', handleWeather);
-app.get ('/trails', handleTrailes);
+app.get('/trails', handleTrailes);
+app.get('/movies', handleMovies); 
 
 // app.use('*', notFoundHandler);
 
 // HELPER FUNCTIONS
+
+// Rout handler for movies (start))
+
+function handleMovies(request, response){
+  const movies = request.query.data;
+  const key = process.env.MOVIE_API_KEY;
+
+  const url = `https://api.themoviedb.org/3/movie/76341?api_key=${key}`;
+
+  return superagent.get(url)
+  .query(movies)
+  .set('Authorization',`Bearer ${process.env.MOVIE_API_KEY}`)
+  .then((data)=>{
+    const result = data.body;
+    console.log('data.body', data.body);
+    const moviesInfo = [];
+    result.movies.forEach(obj =>{
+      moviesInfo.push(new Movies(obj));
+    });
+    response.send(moviesInfo);
+  })
+  .catch((error)=>{
+    console.log('error', error);
+    response.status(500).send('sorry, somthing went wrong.');
+  });
+          
+
+}
+
+  
+  
+//constractor function for movies
+
+function Movies(obj){
+  this.title = obj.titil;
+  this.overview = obj.tagline;
+  this.average_votes = obj.vote_average;
+  this.total_votes = obj.runtime;
+  this.image_url = obj.homepage;
+  this.popularity = obg.vote_count;
+  this.released_on = obj.release_date;
+} 
+//(moviies end )))
 
 // rout handler for restaurants
 
