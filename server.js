@@ -9,6 +9,7 @@ const cors = require('cors');
 const superagent = require('superagent');
 
 const pg = require('pg');
+const { query, response } = require('express');
 
 // Application Setup
 const PORT = process.env.PORT;
@@ -38,15 +39,106 @@ function aboutUsHandler(request, response) {
   response.status(200).send('About Us Page');
 }
 
-// API Routes
+// API Routes definitions
 app.get('/location', handleLocation);
-// app.get('/restaurants', handleRestaurants);
+app.get('/yelp', handleRestaurants);
 app.get('/weather', handleWeather);
-app.get (`/trails`, handleTrailes);
+app.get('/trails', handleTrailes);
+app.get('/movies', handleMovies); 
 
 // app.use('*', notFoundHandler);
 
 // HELPER FUNCTIONS
+
+// Rout handler for movies (start))
+
+function handleMovies(request, response){
+  const movies = request.query.data;
+  const key = process.env.MOVIE_API_KEY;
+
+  const url = `https://api.themoviedb.org/3/movie/76341?api_key=${key}`;
+
+  return superagent.get(url)
+  .query(movies)
+  .set('Authorization',`Bearer ${process.env.MOVIE_API_KEY}`)
+  .then((data)=>{
+    const result = data.body;
+    console.log('data.body', data.body);
+    const moviesInfo = [];
+    result.movies.forEach(obj =>{
+      moviesInfo.push(new Movies(obj));
+    });
+    response.send(moviesInfo);
+  })
+  .catch((error)=>{
+    console.log('error', error);
+    response.status(500).send('sorry, somthing went wrong.');
+  });
+          
+
+}
+
+  
+  
+//constractor function for movies
+
+function Movies(obj){
+  this.title = obj.titil;
+  this.overview = obj.tagline;
+  this.average_votes = obj.vote_average;
+  this.total_votes = obj.runtime;
+  this.image_url = obj.homepage;
+  this.popularity = obg.vote_count;
+  this.released_on = obj.release_date;
+} 
+//(moviies end )))
+
+// rout handler for restaurants
+
+function handleRestaurants(request, response){
+  const nembersPerPage = 5;
+  const page = request.query.page || 1;
+  //console.log('page', page);
+  const start = ((page - 1) * nembersPerPage + 1);
+
+  const location = request.query.search_query
+
+  const url = 'https://api.yelp.com/v3/businesses/search';
+
+  const queryParamas = {
+    location: location,
+    limit: nembersPerPage,
+    offset:start,
+  };
+  //console.log(queryParamas);
+
+  return superagent.get(url)
+  .query(queryParamas)
+  .set('Authorization',`Bearer ${process.env.YELP_API_KEY}`)
+  .then((data)=>{
+    const result = data.body;
+    //console.log('data.body', data.body);
+    const restaurantInfo = [];
+    result.businesses.forEach(obj =>{
+      restaurantInfo.push(new Restaurant(obj));
+    });
+    response.send(restaurantInfo);
+  })
+  .catch((error)=>{
+    console.log('error', error);
+    response.status(500).send('sorry, somthing went wrong.');
+  });
+};
+
+// restaurant constarcter function 
+
+function Restaurant(obj){
+  this.name = obj.name;
+  this.image_url = obj.image_url;
+  this.price = obj.price;
+  this.rating = obj.rating;
+  this.url = obj.url;
+}
 
 
 //(1 start )route handler for weather
@@ -54,7 +146,7 @@ app.get (`/trails`, handleTrailes);
 function handleWeather(req, res){
   let city = req.query.search_query;
   let key = process.env.WEATHER_API_KEY;
-  console.log('city', city);
+  //console.log('city', city);
 
   const URL = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&key=${key}&days=7`;
 
@@ -93,15 +185,16 @@ function Weather(obj){
 
 function handleLocation(req, res){
   let city = req.query.city;
+  //console.log('city', city);
   let key = process.env.GEOCODDE_API_KEY;
 
 
-  const SQL = `SELECT * FROM locations WHERE search_query=$1`;
+  const SQL = 'SELECT * FROM locations WHERE search_query=$1';
   const sqlValue = [city];
 
-  client.query(SQL, sqlValue)
+  return client.query(SQL, sqlValue)
   .then(result=>{
-    console.log(result);
+    //console.log(result);
     if (result.rows.length) res.status(200).json(result.rows[0]);
     else{
     const URL = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
@@ -111,7 +204,7 @@ function handleLocation(req, res){
         //console.log(data.body[0]);
   
         let location = new Location(city, data.body[0]);
-        console.log('location', location);
+        //console.log('location', location);
         const SQL = `INSERT INTO locations (search_query, latitude, longitude, formatted_query) VALUES ($1,$2,$3,$4)`;
         const sqlValue = [location.search_query,location.latitude,location.longitude,location.formatted_query];
         client.query(SQL,sqlValue);
@@ -181,9 +274,10 @@ function Trails(trailObj){
 
 // Make sure the server is listening for requests, firs connect with the database and then connect with server.
 client.connect()
-.then(()=>{
+.then(app.listen(PORT, () => console.log(`App is listening on ${PORT}`)))
+.catch(err=>console.error(err));
   
-  app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
-})
+  
+
 
 
