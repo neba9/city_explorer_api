@@ -53,42 +53,36 @@ app.get('/movies', handleMovies);
 // Rout handler for movies (start))
 
 function handleMovies(request, response){
-  const movies = request.query.data;
+  const city = request.query.search_query;
   const key = process.env.MOVIE_API_KEY;
 
-  const url = `https://api.themoviedb.org/3/movie/76341?api_key=${key}`;
+  const url = `https://api.themoviedb.org/3/search/movie?api_key=${key}&language=en-US&query=${city}&page=1&include_adult=false`;
 
-  return superagent.get(url)
-  .query(movies)
-  .set('Authorization',`Bearer ${process.env.MOVIE_API_KEY}`)
-  .then((data)=>{
-    const result = data.body;
-    console.log('data.body', data.body);
-    const moviesInfo = [];
-    result.movies.forEach(obj =>{
-      moviesInfo.push(new Movies(obj));
+  superagent.get(url)
+  .then(data =>{
+    console.log(data.body.results);
+    let eachMovie = data.body.results.map(movie=>{
+      return new Movies(movie)
     });
-    response.send(moviesInfo);
+    response.status(200).json(eachMovie)
+    response.send(eachMovie);
   })
   .catch((error)=>{
     console.log('error', error);
     response.status(500).send('sorry, somthing went wrong.');
   });
-          
 
 }
-
-  
-  
+ 
 //constractor function for movies
 
 function Movies(obj){
-  this.title = obj.titil;
-  this.overview = obj.tagline;
+  this.title = obj.title;
+  this.overview = obj.overview;
   this.average_votes = obj.vote_average;
-  this.total_votes = obj.runtime;
-  this.image_url = obj.homepage;
-  this.popularity = obg.vote_count;
+  // this.total_votes = obj.vote_count;
+  this.image_url = `https://image.tmdb.org/t/p/w500/${obj.poster_path}`;
+  this.popularity = obj.popularity;
   this.released_on = obj.release_date;
 } 
 //(moviies end )))
