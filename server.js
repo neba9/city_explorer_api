@@ -65,7 +65,7 @@ function handleMovies(request, response){
       return new Movies(movie)
     });
     response.status(200).json(eachMovie)
-    response.send(eachMovie);
+    // response.send(eachMovie);
   })
   .catch((error)=>{
     console.log('error', error);
